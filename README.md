@@ -4,14 +4,15 @@ A local-first prototype for reconstructing ambiguous payment lifecycles, detecti
 
 ## Current scope
 
-Phases 0–5 are implemented:
+Phases 0–6 are implemented:
 
 - source CSV inspection and PostgreSQL ingestion;
 - deterministic payment-state semantics;
 - four controlled exception scenarios;
 - reproducible lifecycle generation with observed/hidden event boundaries.
+- time-safe deterministic state reconstruction and V1 exception detection.
 
-State reconstruction, exception detection, ML, policy, API, and UI work are not implemented yet.
+ML, policy, API, and UI work are not implemented yet.
 
 ## Requirements
 

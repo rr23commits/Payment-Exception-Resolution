@@ -22,3 +22,9 @@ coverage.xml
 data/generated/*.json
 data/raw/*.csv
 data/raw/*.zip
+
+# Local development continuity
+DECISIONS.md
+FLOW.md
+HANDOVER.md
+FEATURES/
