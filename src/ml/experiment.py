@@ -102,9 +102,7 @@ def run_experiment(records: list[SourceTransaction]) -> dict[str, object]:
 
 
 def _run_ablation(rows: list[ExperimentRow], feature_names: tuple[str, ...]) -> dict[str, object]:
-    train_rows = [row for row in rows if row.split == DatasetSplit.TRAIN]
-    model = _new_model()
-    model.fit(_feature_dicts(train_rows, feature_names), _labels(train_rows))
+    model = fit_model(rows, feature_names)
     return {
         "features": list(feature_names),
         "metrics": {
@@ -112,6 +110,19 @@ def _run_ablation(rows: list[ExperimentRow], feature_names: tuple[str, ...]) -> 
             for split in DatasetSplit
         },
     }
+
+
+def fit_model(rows: list[ExperimentRow], feature_names: tuple[str, ...]) -> Pipeline:
+    """Fit the existing deterministic Phase 10 model on train rows only."""
+    train_rows = [row for row in rows if row.split == DatasetSplit.TRAIN]
+    model = _new_model()
+    model.fit(_feature_dicts(train_rows, feature_names), _labels(train_rows))
+    return model
+
+
+def model_probabilities(model: Pipeline, rows: list[ExperimentRow], feature_names: tuple[str, ...]) -> list[float]:
+    """Score rows with the selected existing feature contract."""
+    return model.predict_proba(_feature_dicts(rows, feature_names))[:, 1].tolist()
 
 
 def _new_model() -> Pipeline:
@@ -143,7 +154,7 @@ def _score_baseline(baseline: StateRateBaseline, rows: list[ExperimentRow]) -> d
 
 
 def _score_model(model: Pipeline, rows: list[ExperimentRow], feature_names: tuple[str, ...]) -> dict[str, float]:
-    return _score_predictions(_labels(rows), model.predict_proba(_feature_dicts(rows, feature_names))[:, 1].tolist())
+    return _score_predictions(_labels(rows), model_probabilities(model, rows, feature_names))
 
 
 def _score_predictions(labels: list[bool], probabilities: list[float]) -> dict[str, float]:

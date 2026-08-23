@@ -1,0 +1,149 @@
+{
+  "ablation_test_metrics": {
+    "payment_attributes": {
+      "accuracy": 0.5704697986577181,
+      "average_precision": 0.6125496742961449,
+      "brier_score": 0.2534985080137275,
+      "false_escalation_rate": 0.3422818791946309,
+      "recall": 0.8555555555555555,
+      "roc_auc": 0.4935969868173258
+    },
+    "plus_complaint_signals": {
+      "accuracy": 0.6845637583892618,
+      "average_precision": 0.8597365443293988,
+      "brier_score": 0.17017988994026823,
+      "false_escalation_rate": 0.19463087248322147,
+      "recall": 0.8,
+      "roc_auc": 0.7715630885122411
+    },
+    "plus_event_history_timing": {
+      "accuracy": 0.6845637583892618,
+      "average_precision": 0.8597365443293988,
+      "brier_score": 0.17018354831323493,
+      "false_escalation_rate": 0.19463087248322147,
+      "recall": 0.8,
+      "roc_auc": 0.7715630885122411
+    },
+    "plus_merchant_signals": {
+      "accuracy": 0.6845637583892618,
+      "average_precision": 0.8597365443293988,
+      "brier_score": 0.17018023987841507,
+      "false_escalation_rate": 0.19463087248322147,
+      "recall": 0.8,
+      "roc_auc": 0.7715630885122411
+    },
+    "plus_state": {
+      "accuracy": 0.5771812080536913,
+      "average_precision": 0.6107373604592206,
+      "brier_score": 0.25343326509067965,
+      "false_escalation_rate": 0.3422818791946309,
+      "recall": 0.8666666666666667,
+      "roc_auc": 0.49416195856873824
+    }
+  },
+  "dataset": {
+    "row_count": 1000,
+    "sha256": "62fe1959cfb80afa02a7addd5a371c5511738758cfd1500b8e41e65cafed31de",
+    "version": "sha256:62fe1959cfb80afa02a7addd5a371c5511738758cfd1500b8e41e65cafed31de"
+  },
+  "definitions": {
+    "baseline": "train-split intervention rate by reconstructed pending state",
+    "feature_definition": "v1",
+    "model": {
+      "ablation": "plus_complaint_signals",
+      "type": "sklearn_logistic_regression",
+      "version": "phase10-v3-logistic-v1"
+    },
+    "state_machine": "v1"
+  },
+  "execution_scope": {
+    "api_required": false,
+    "money_moving_integration": false,
+    "ui_required": false
+  },
+  "limitations": [
+    "Lifecycle, complaint, timing, and outcome data are deterministic controlled simulations.",
+    "The report evaluates a transaction-ID held-out split; it is not a production-service estimate.",
+    "Policy recommendations and modeled human decisions do not execute payment operations."
+  ],
+  "performance_comparison": {
+    "baseline_test": {
+      "accuracy": 0.6040268456375839,
+      "average_precision": 0.6118556933993176,
+      "brier_score": 0.2402882258258417,
+      "false_escalation_rate": 0.3959731543624161,
+      "recall": 1.0,
+      "roc_auc": 0.5159133709981167
+    },
+    "model_test": {
+      "accuracy": 0.6845637583892618,
+      "average_precision": 0.8597365443293988,
+      "brier_score": 0.17017988994026823,
+      "false_escalation_rate": 0.19463087248322147,
+      "recall": 0.8,
+      "roc_auc": 0.7715630885122411
+    }
+  },
+  "pipeline": {
+    "audit_record_count": 13018,
+    "evaluated_incidents": 1000,
+    "false_escalation_rate": 0.19463087248322147,
+    "intervention_recall": 0.8,
+    "modeled_human_decision_count": 0,
+    "policy_action_counts": {
+      "MONITOR": 122,
+      "NOTIFY": 509,
+      "RECHECK / RECONCILE": 369
+    },
+    "verified_resolutions": 1000
+  },
+  "proof_version": "phase13-end-to-end-v1",
+  "resolution_time_error": "not applicable: the approved model predicts intervention only, not a duration",
+  "scenario_configuration": {
+    "assignment_version": "source-risk-friction-timing-v3",
+    "scenarios": {
+      "delayed_stuck_reversal": {
+        "evidence": [
+          "INITIATION_RECORDED",
+          "BANK_DEBIT_CONFIRMED",
+          "GATEWAY_TIMEOUT_RECORDED",
+          "REVERSAL_REQUESTED",
+          "REVERSAL_CONFIRMED"
+        ],
+        "expected_resolution_window_seconds": 600.0
+      },
+      "payment_success_order_failure": {
+        "evidence": [
+          "INITIATION_RECORDED",
+          "BANK_DEBIT_CONFIRMED",
+          "PAYMENT_SUCCESS_CONFIRMED",
+          "ORDER_FAILURE_CONFIRMED",
+          "REFUND_REQUESTED",
+          "REFUND_CONFIRMED"
+        ],
+        "expected_resolution_window_seconds": 720.0
+      },
+      "refund_pending_stuck": {
+        "evidence": [
+          "INITIATION_RECORDED",
+          "BANK_DEBIT_CONFIRMED",
+          "PAYMENT_SUCCESS_CONFIRMED",
+          "ORDER_FAILURE_CONFIRMED",
+          "REFUND_REQUESTED",
+          "REFUND_CONFIRMED"
+        ],
+        "expected_resolution_window_seconds": 720.0
+      },
+      "timeout_to_reversal": {
+        "evidence": [
+          "INITIATION_RECORDED",
+          "BANK_DEBIT_CONFIRMED",
+          "GATEWAY_TIMEOUT_RECORDED",
+          "REVERSAL_REQUESTED",
+          "REVERSAL_CONFIRMED"
+        ],
+        "expected_resolution_window_seconds": 600.0
+      }
+    }
+  }
+}

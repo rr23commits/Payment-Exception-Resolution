@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment Exception Resolution Demo</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">LOCAL ENGINE DEMO</p>
+        <h1>Payment exception resolution</h1>
+        <p class="simulation">Simulated controlled data only. This demo cannot move money or make payment changes.</p>
+      </header>
+
+      <section class="selector" aria-label="Incident selection">
+        <label for="incident-select">Incident</label>
+        <select id="incident-select"><option>Loading incidents…</option></select>
+      </section>
+
+      <p id="error" role="alert"></p>
+      <section id="summary" class="cards" aria-live="polite"></section>
+      <section class="panel">
+        <h2>Evidence timeline</h2>
+        <ol id="timeline"></ol>
+      </section>
+      <section class="panel">
+        <h2>Audit history</h2>
+        <ol id="audit"></ol>
+      </section>
+      <footer>All lifecycle, complaint, model, policy, and resolution information is generated for this controlled evaluation.</footer>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
