@@ -38,6 +38,8 @@ class StateSnapshot:
 
 def reconstruct_state(events: tuple[PaymentEvent, ...], observation_cutoff: datetime) -> StateSnapshot:
     """Rebuild the latest valid state using only events available by the cutoff."""
+    if any(not isinstance(event, PaymentEvent) for event in events):
+        raise ValueError("state reconstruction accepts lifecycle evidence only")
     observed = sorted(
         (event for event in events if event.event_time <= observation_cutoff),
         key=lambda event: (event.event_time, event.sequence_number, event.event_id),

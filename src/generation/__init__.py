@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
+from src.domain.complaints import COMPLAINTS_BY_SCENARIO, ComplaintSeverity, ComplaintType
 from src.domain.scenarios import SCENARIOS, ScenarioDefinition, ScenarioId
 from src.domain.scenarios.config import (
     ScenarioParameters,
@@ -20,7 +21,7 @@ from src.domain.scenarios.config import (
 )
 from src.domain.source_transaction import SourceTransaction
 from src.domain.state_machine import EVIDENCE_REQUIREMENTS, EvidenceType, PaymentState
-from src.provenance import GENERATED_LIFECYCLE
+from src.provenance import GENERATED_COMPLAINT, GENERATED_LIFECYCLE
 
 
 ASSIGNMENT_VERSION = "sha256-transaction-id-mod-4-v1"
@@ -40,11 +41,24 @@ class PaymentEvent:
 
 
 @dataclass(frozen=True)
+class ComplaintEvent:
+    event_id: str
+    transaction_id: str
+    scenario_instance_id: str
+    event_time: datetime
+    complaint_type: ComplaintType
+    text: str
+    severity: ComplaintSeverity
+    generation_origin: str = GENERATED_COMPLAINT
+
+
+@dataclass(frozen=True)
 class ScenarioInstance:
     scenario_instance_id: str
     transaction_id: str
     scenario_id: ScenarioId
     events: tuple[PaymentEvent, ...]
+    complaints: tuple[ComplaintEvent, ...]
     observation_cutoff: datetime
     hidden_future_event_ids: tuple[str, ...]
     expected_resolution_window: timedelta
@@ -58,6 +72,14 @@ class ScenarioInstance:
     @property
     def hidden_future_events(self) -> tuple[PaymentEvent, ...]:
         return tuple(event for event in self.events if event.event_id in self.hidden_future_event_ids)
+
+    @property
+    def observed_complaints(self) -> tuple[ComplaintEvent, ...]:
+        return tuple(complaint for complaint in self.complaints if complaint.event_time <= self.observation_cutoff)
+
+    @property
+    def hidden_future_complaints(self) -> tuple[ComplaintEvent, ...]:
+        return tuple(complaint for complaint in self.complaints if complaint.event_time > self.observation_cutoff)
 
     @property
     def merchant_evidence(self) -> tuple[PaymentEvent, ...]:
@@ -100,11 +122,23 @@ def generate_scenario_instance(
     )
     visible_count = len(observed_evidence(scenario, parameters))
     hidden = hidden_future_evidence(scenario, parameters)
+    complaint = COMPLAINTS_BY_SCENARIO[scenario.scenario_id]
     return ScenarioInstance(
         scenario_instance_id=instance_id,
         transaction_id=source.transaction_id,
         scenario_id=scenario.scenario_id,
         events=events,
+        complaints=(
+            ComplaintEvent(
+                event_id=str(uuid5(NAMESPACE_URL, f"{instance_id}:complaint")),
+                transaction_id=source.transaction_id,
+                scenario_instance_id=instance_id,
+                event_time=source.timestamp + complaint.offset,
+                complaint_type=complaint.complaint_type,
+                text=complaint.text,
+                severity=complaint.severity,
+            ),
+        ),
         observation_cutoff=events[visible_count - 1].event_time,
         hidden_future_event_ids=tuple(event.event_id for event in events[-len(hidden) :]),
         expected_resolution_window=parameters.expected_resolution_window,
@@ -139,6 +173,19 @@ def _as_dict(instance: ScenarioInstance) -> dict[str, object]:
                 "sequence_number": event.sequence_number,
             }
             for event in instance.events
+        ],
+        "complaints": [
+            {
+                "event_id": complaint.event_id,
+                "transaction_id": complaint.transaction_id,
+                "scenario_instance_id": complaint.scenario_instance_id,
+                "event_time": complaint.event_time.isoformat(sep=" "),
+                "complaint_type": complaint.complaint_type.value,
+                "text": complaint.text,
+                "severity": complaint.severity.value,
+                "generation_origin": complaint.generation_origin,
+            }
+            for complaint in instance.complaints
         ],
         "observation_cutoff": instance.observation_cutoff.isoformat(sep=" "),
         "hidden_future_event_ids": instance.hidden_future_event_ids,

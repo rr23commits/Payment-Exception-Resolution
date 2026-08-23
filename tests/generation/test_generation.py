@@ -4,11 +4,12 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
+from src.domain.complaints import ComplaintType
 from src.domain.scenarios import SCENARIOS
 from src.ingestion.inspect import inspect_csv
 from src.ingestion.source_transactions import read_source_transactions
 from src.generation import generate_scenario_instance, write_ground_truth
-from src.provenance import GENERATED_LIFECYCLE
+from src.provenance import GENERATED_COMPLAINT, GENERATED_LIFECYCLE
 from src.domain.state_machine import apply_evidence
 
 
@@ -57,3 +58,22 @@ class LifecycleGenerationTests(unittest.TestCase):
             },
         )
         self.assertNotIn("scenario_id", stored["events"][0])
+        self.assertEqual(
+            set(stored["complaints"][0]),
+            {"event_id", "transaction_id", "scenario_instance_id", "event_time", "complaint_type", "text", "severity", "generation_origin"},
+        )
+
+    def test_complaints_are_repeatable_typed_and_time_safe(self) -> None:
+        instances = [generate_scenario_instance(self.source, scenario) for scenario in SCENARIOS]
+
+        self.assertEqual(instances, [generate_scenario_instance(self.source, scenario) for scenario in SCENARIOS])
+        self.assertEqual(
+            {complaint.complaint_type for instance in instances for complaint in instance.complaints},
+            set(ComplaintType),
+        )
+        self.assertTrue(all(complaint.generation_origin == GENERATED_COMPLAINT for instance in instances for complaint in instance.complaints))
+        self.assertTrue(all(complaint.text and complaint.severity.value for instance in instances for complaint in instance.complaints))
+        self.assertTrue(all(complaint.event_time <= instance.observation_cutoff for instance in instances for complaint in instance.observed_complaints))
+        self.assertTrue(all(complaint.event_time > instance.observation_cutoff for instance in instances for complaint in instance.hidden_future_complaints))
+        self.assertTrue(any(instance.observed_complaints for instance in instances))
+        self.assertTrue(any(instance.hidden_future_complaints for instance in instances))

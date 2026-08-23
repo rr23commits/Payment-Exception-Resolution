@@ -69,3 +69,12 @@ class DeterministicEngineTests(unittest.TestCase):
             ExceptionKind.REFUND_PENDING_STUCK,
             {incident.kind for incident in detect_exceptions(refund_snapshot, stuck_refund.expected_resolution_window)},
         )
+
+    def test_complaints_cannot_enter_financial_state_reconstruction(self) -> None:
+        instance = generate_scenario_instance(self.source, SCENARIOS[2])
+        without_complaint = replace(instance, complaints=())
+        expected = reconstruct_state(instance.events, instance.observation_cutoff)
+
+        self.assertEqual(expected, reconstruct_state(without_complaint.events, without_complaint.observation_cutoff))
+        with self.assertRaisesRegex(ValueError, "lifecycle evidence only"):
+            reconstruct_state(instance.events + instance.complaints, instance.observation_cutoff)
