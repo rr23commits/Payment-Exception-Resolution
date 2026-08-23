@@ -3,6 +3,9 @@
 from enum import Enum
 
 
+STATE_MACHINE_VERSION = "v1"
+
+
 class PaymentState(str, Enum):
     INITIATED = "INITIATED"
     AUTHORIZED = "AUTHORIZED"

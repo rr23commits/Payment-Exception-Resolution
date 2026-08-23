@@ -2,7 +2,7 @@
 name = "payment-exception-resolution"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["psycopg[binary]>=3.2"]
+dependencies = ["psycopg[binary]>=3.2", "scikit-learn>=1.5"]
 
 [tool.unittest]
 start-directory = "tests"

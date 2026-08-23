@@ -1,0 +1,52 @@
+{
+  "baseline_state_rates": {
+    "REFUND_PENDING": 0.6368715083798883,
+    "REVERSAL_PENDING": 0.6389684813753582
+  },
+  "metrics": {
+    "all": {
+      "brier_score": 0.2301117980564307,
+      "false_escalation_rate": 0.359,
+      "intervention_accuracy": 0.641,
+      "intervention_recall": 1.0
+    },
+    "test": {
+      "brier_score": 0.24028822582584164,
+      "false_escalation_rate": 0.3959731543624161,
+      "intervention_accuracy": 0.6040268456375839,
+      "intervention_recall": 1.0
+    },
+    "train": {
+      "brier_score": 0.2309806573446685,
+      "false_escalation_rate": 0.3620933521923621,
+      "intervention_accuracy": 0.637906647807638,
+      "intervention_recall": 1.0
+    },
+    "validation": {
+      "brier_score": 0.2153161643451367,
+      "false_escalation_rate": 0.3055555555555556,
+      "intervention_accuracy": 0.6944444444444444,
+      "intervention_recall": 1.0
+    }
+  },
+  "row_count": 1000,
+  "target_distribution": {
+    "intervention_rate_by_amount_band": {
+      "high_amount": 0.6881243063263041,
+      "low_amount": 0.21212121212121213
+    },
+    "requires_intervention": {
+      "false": 359,
+      "true": 641
+    }
+  },
+  "versions": {
+    "dataset": "sha256:62fe1959cfb80afa02a7addd5a371c5511738758cfd1500b8e41e65cafed31de",
+    "feature_definition": "v1",
+    "observation_plan": "first-pending-state-v1",
+    "scenario_assignment": "source-risk-friction-timing-v3",
+    "split": "sha256-transaction-id-mod-100-v1",
+    "state_machine": "v1",
+    "target_definition": "pending-window-v2"
+  }
+}

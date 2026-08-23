@@ -27,4 +27,4 @@ data/raw/*.zip
 DECISIONS.md
 FLOW.md
 HANDOVER.md
-FEATURES/
+/FEATURES/

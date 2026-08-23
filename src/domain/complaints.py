@@ -31,25 +31,25 @@ COMPLAINTS_BY_SCENARIO = {
     ScenarioId.TIMEOUT_TO_REVERSAL: ComplaintSpecification(
         ComplaintType.PAYMENT_CONFIRMATION_PENDING,
         "My account was debited, but payment confirmation is pending.",
-        ComplaintSeverity.MEDIUM,
+        ComplaintSeverity.HIGH,
         timedelta(minutes=3),
     ),
     ScenarioId.DELAYED_STUCK_REVERSAL: ComplaintSpecification(
         ComplaintType.REVERSAL_PENDING,
         "My account was debited, but reversal is still pending.",
         ComplaintSeverity.HIGH,
-        timedelta(minutes=5),
+        timedelta(minutes=3),
     ),
     ScenarioId.PAYMENT_SUCCESS_ORDER_FAILURE: ComplaintSpecification(
         ComplaintType.ORDER_NOT_FULFILLED,
         "Payment succeeded, but my order was not fulfilled.",
         ComplaintSeverity.HIGH,
-        timedelta(minutes=3),
+        timedelta(minutes=4),
     ),
     ScenarioId.REFUND_PENDING_STUCK: ComplaintSpecification(
         ComplaintType.REFUND_PENDING,
         "My refund is still pending.",
         ComplaintSeverity.HIGH,
-        timedelta(minutes=6),
+        timedelta(minutes=4),
     ),
 }

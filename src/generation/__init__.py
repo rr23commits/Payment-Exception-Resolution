@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 from src.domain.complaints import COMPLAINTS_BY_SCENARIO, ComplaintSeverity, ComplaintType
-from src.domain.scenarios import SCENARIOS, ScenarioDefinition, ScenarioId
+from src.domain.scenarios import SCENARIO_BY_ID, SCENARIOS, ScenarioDefinition, ScenarioId
 from src.domain.scenarios.config import (
     ScenarioParameters,
     actual_resolution_duration,
@@ -24,7 +24,7 @@ from src.domain.state_machine import EVIDENCE_REQUIREMENTS, EvidenceType, Paymen
 from src.provenance import GENERATED_COMPLAINT, GENERATED_LIFECYCLE
 
 
-ASSIGNMENT_VERSION = "sha256-transaction-id-mod-4-v1"
+ASSIGNMENT_VERSION = "source-risk-friction-timing-v3"
 
 
 @dataclass(frozen=True)
@@ -90,10 +90,67 @@ class ScenarioInstance:
         return actual_resolution_duration(tuple(event.event_time for event in self.events))
 
 
-def assign_scenario(transaction_id: str) -> ScenarioDefinition:
-    """Assign independently of source status and without a random seed."""
-    position = int.from_bytes(hashlib.sha256(transaction_id.encode("utf-8")).digest()[:8]) % len(SCENARIOS)
-    return SCENARIOS[position]
+def assign_scenario(source: SourceTransaction) -> ScenarioDefinition:
+    """Choose an on-time/delayed path from source risk plus hidden stable friction."""
+    timeout_path = _unit_interval(source.transaction_id, "branch") < 0.5
+    delayed = _latent_friction(source) >= 0.5
+    if timeout_path:
+        scenario_id = ScenarioId.DELAYED_STUCK_REVERSAL if delayed else ScenarioId.TIMEOUT_TO_REVERSAL
+    else:
+        scenario_id = ScenarioId.REFUND_PENDING_STUCK if delayed else ScenarioId.PAYMENT_SUCCESS_ORDER_FAILURE
+    return SCENARIO_BY_ID[scenario_id]
+
+
+def _intervention_probability(source: SourceTransaction) -> float:
+    """Simulate observable risk while retaining irreducible hidden variation for evaluation."""
+    probability = 0.2
+    if source.amount_inr >= 1000:
+        probability += 0.25
+    if source.timestamp.hour < 6 or source.timestamp.hour >= 18:
+        probability += 0.15
+    if _upi_provider(source.sender_upi_id) != _upi_provider(source.receiver_upi_id):
+        probability += 0.1
+    return min(probability, 0.8)
+
+
+def _latent_friction(source: SourceTransaction) -> float:
+    """Keep reproducible hidden variation while making observable risk informative, not decisive."""
+    return 0.65 * _intervention_probability(source) + 0.35 * _unit_interval(source.transaction_id, "friction")
+
+
+def _unit_interval(transaction_id: str, purpose: str) -> float:
+    digest = hashlib.sha256(f"{ASSIGNMENT_VERSION}:{purpose}:{transaction_id}".encode("utf-8")).digest()
+    return int.from_bytes(digest[:8]) / 2**64
+
+
+def _upi_provider(upi_id: str) -> str:
+    return upi_id.rsplit("@", 1)[-1]
+
+
+def _event_timestamps(
+    source: SourceTransaction, scenario: ScenarioDefinition, parameters: ScenarioParameters
+) -> tuple[datetime, ...]:
+    """Vary observed pending entry and hidden confirmation timing without changing lifecycle evidence."""
+    parameters.validate(len(scenario.evidence))
+    offsets = list(parameters.event_offsets)
+    pending_index = next(
+        index
+        for index, evidence in enumerate(scenario.evidence)
+        if evidence in {EvidenceType.REVERSAL_REQUESTED, EvidenceType.REFUND_REQUESTED}
+    )
+    # Entry timing is observed at the target cutoff; its overlap between labels prevents a threshold shortcut.
+    entry_minutes = int(offsets[pending_index - 1].total_seconds() // 60) + 1 + round(_latent_friction(source) * 4)
+    offsets[pending_index] = timedelta(minutes=entry_minutes)
+
+    window_minutes = int(parameters.expected_resolution_window.total_seconds() // 60)
+    residual = _unit_interval(source.transaction_id, "confirmation-residual")
+    if scenario.scenario_id in {ScenarioId.DELAYED_STUCK_REVERSAL, ScenarioId.REFUND_PENDING_STUCK}:
+        confirmation_minutes = window_minutes + 1 + int(residual * 8)
+    else:
+        earliest_confirmation = entry_minutes + 1
+        confirmation_minutes = earliest_confirmation + int(residual * (window_minutes - earliest_confirmation + 1))
+    offsets[-1] = timedelta(minutes=confirmation_minutes)
+    return tuple(source.timestamp + offset for offset in offsets)
 
 
 def generate_scenario_instance(
@@ -102,9 +159,9 @@ def generate_scenario_instance(
     parameters: ScenarioParameters | None = None,
 ) -> ScenarioInstance:
     """Materialize the complete controlled trajectory while retaining its hidden suffix."""
-    scenario = scenario or assign_scenario(source.transaction_id)
+    scenario = scenario or assign_scenario(source)
     parameters = parameters or parameters_for(scenario)
-    event_times = parameters.event_timestamps(source.timestamp, len(scenario.evidence))
+    event_times = _event_timestamps(source, scenario, parameters)
     instance_id = str(uuid5(NAMESPACE_URL, f"{ASSIGNMENT_VERSION}:{source.transaction_id}:{scenario.scenario_id.value}"))
     events = tuple(
         PaymentEvent(

@@ -1,0 +1,259 @@
+{
+  "baseline": {
+    "metrics": {
+      "test": {
+        "accuracy": 0.6040268456375839,
+        "average_precision": 0.6118556933993176,
+        "brier_score": 0.2402882258258417,
+        "false_escalation_rate": 0.3959731543624161,
+        "recall": 1.0,
+        "roc_auc": 0.5159133709981167
+      },
+      "train": {
+        "accuracy": 0.637906647807638,
+        "average_precision": 0.6384316785961117,
+        "brier_score": 0.2309806573446685,
+        "false_escalation_rate": 0.3620933521923621,
+        "recall": 1.0,
+        "roc_auc": 0.5011346313747228
+      },
+      "validation": {
+        "accuracy": 0.6944444444444444,
+        "average_precision": 0.7105263157894737,
+        "brier_score": 0.21531616434513673,
+        "false_escalation_rate": 0.3055555555555556,
+        "recall": 1.0,
+        "roc_auc": 0.5363636363636364
+      }
+    },
+    "state_rates": {
+      "REFUND_PENDING": 0.6368715083798883,
+      "REVERSAL_PENDING": 0.6389684813753582
+    },
+    "type": "train_split_state_rate"
+  },
+  "models": {
+    "ablations": {
+      "payment_attributes": {
+        "features": [
+          "amount_inr",
+          "sender_upi_provider",
+          "receiver_upi_provider",
+          "source_hour",
+          "source_weekday"
+        ],
+        "metrics": {
+          "test": {
+            "accuracy": 0.5704697986577181,
+            "average_precision": 0.6125496742961449,
+            "brier_score": 0.2534985080137275,
+            "false_escalation_rate": 0.3422818791946309,
+            "recall": 0.8555555555555555,
+            "roc_auc": 0.4935969868173258
+          },
+          "train": {
+            "accuracy": 0.669024045261669,
+            "average_precision": 0.7385910785246103,
+            "brier_score": 0.2176264637121448,
+            "false_escalation_rate": 0.28995756718529,
+            "recall": 0.9356984478935698,
+            "roc_auc": 0.6313574002217295
+          },
+          "validation": {
+            "accuracy": 0.6805555555555556,
+            "average_precision": 0.8163880319195811,
+            "brier_score": 0.20706670637781535,
+            "false_escalation_rate": 0.2222222222222222,
+            "recall": 0.86,
+            "roc_auc": 0.6509090909090909
+          }
+        }
+      },
+      "plus_complaint_signals": {
+        "features": [
+          "amount_inr",
+          "sender_upi_provider",
+          "receiver_upi_provider",
+          "source_hour",
+          "source_weekday",
+          "reconstructed_state",
+          "observed_event_count",
+          "last_event_type",
+          "elapsed_seconds",
+          "merchant_event_count",
+          "merchant_order_failure_observed",
+          "observed_complaint_count",
+          "observed_high_severity_complaint_count"
+        ],
+        "metrics": {
+          "test": {
+            "accuracy": 0.6845637583892618,
+            "average_precision": 0.8597365443293988,
+            "brier_score": 0.17017988994026823,
+            "false_escalation_rate": 0.19463087248322147,
+            "recall": 0.8,
+            "roc_auc": 0.7715630885122411
+          },
+          "train": {
+            "accuracy": 0.751060820367751,
+            "average_precision": 0.9170665639993963,
+            "brier_score": 0.14354415760496214,
+            "false_escalation_rate": 0.173974540311174,
+            "recall": 0.8824833702882483,
+            "roc_auc": 0.8486003325942351
+          },
+          "validation": {
+            "accuracy": 0.7986111111111112,
+            "average_precision": 0.9261172005026905,
+            "brier_score": 0.15142386745409125,
+            "false_escalation_rate": 0.09722222222222222,
+            "recall": 0.85,
+            "roc_auc": 0.835
+          }
+        }
+      },
+      "plus_event_history_timing": {
+        "features": [
+          "amount_inr",
+          "sender_upi_provider",
+          "receiver_upi_provider",
+          "source_hour",
+          "source_weekday",
+          "reconstructed_state",
+          "observed_event_count",
+          "last_event_type",
+          "elapsed_seconds"
+        ],
+        "metrics": {
+          "test": {
+            "accuracy": 0.6845637583892618,
+            "average_precision": 0.8597365443293988,
+            "brier_score": 0.17018354831323493,
+            "false_escalation_rate": 0.19463087248322147,
+            "recall": 0.8,
+            "roc_auc": 0.7715630885122411
+          },
+          "train": {
+            "accuracy": 0.751060820367751,
+            "average_precision": 0.9170515097459704,
+            "brier_score": 0.14354581719850035,
+            "false_escalation_rate": 0.173974540311174,
+            "recall": 0.8824833702882483,
+            "roc_auc": 0.848574348669623
+          },
+          "validation": {
+            "accuracy": 0.7986111111111112,
+            "average_precision": 0.9262233393437691,
+            "brier_score": 0.15143754212270633,
+            "false_escalation_rate": 0.09722222222222222,
+            "recall": 0.85,
+            "roc_auc": 0.8352272727272727
+          }
+        }
+      },
+      "plus_merchant_signals": {
+        "features": [
+          "amount_inr",
+          "sender_upi_provider",
+          "receiver_upi_provider",
+          "source_hour",
+          "source_weekday",
+          "reconstructed_state",
+          "observed_event_count",
+          "last_event_type",
+          "elapsed_seconds",
+          "merchant_event_count",
+          "merchant_order_failure_observed"
+        ],
+        "metrics": {
+          "test": {
+            "accuracy": 0.6845637583892618,
+            "average_precision": 0.8597365443293988,
+            "brier_score": 0.17018023987841507,
+            "false_escalation_rate": 0.19463087248322147,
+            "recall": 0.8,
+            "roc_auc": 0.7715630885122411
+          },
+          "train": {
+            "accuracy": 0.751060820367751,
+            "average_precision": 0.917074176493574,
+            "brier_score": 0.14354591686521131,
+            "false_escalation_rate": 0.173974540311174,
+            "recall": 0.8824833702882483,
+            "roc_auc": 0.848617655210643
+          },
+          "validation": {
+            "accuracy": 0.7986111111111112,
+            "average_precision": 0.9261172005026905,
+            "brier_score": 0.1514165650492603,
+            "false_escalation_rate": 0.09722222222222222,
+            "recall": 0.85,
+            "roc_auc": 0.835
+          }
+        }
+      },
+      "plus_state": {
+        "features": [
+          "amount_inr",
+          "sender_upi_provider",
+          "receiver_upi_provider",
+          "source_hour",
+          "source_weekday",
+          "reconstructed_state"
+        ],
+        "metrics": {
+          "test": {
+            "accuracy": 0.5771812080536913,
+            "average_precision": 0.6107373604592206,
+            "brier_score": 0.25343326509067965,
+            "false_escalation_rate": 0.3422818791946309,
+            "recall": 0.8666666666666667,
+            "roc_auc": 0.49416195856873824
+          },
+          "train": {
+            "accuracy": 0.6704384724186704,
+            "average_precision": 0.7395318914547206,
+            "brier_score": 0.21761029052566397,
+            "false_escalation_rate": 0.28854314002828857,
+            "recall": 0.9356984478935698,
+            "roc_auc": 0.6313747228381376
+          },
+          "validation": {
+            "accuracy": 0.6805555555555556,
+            "average_precision": 0.8166542097462579,
+            "brier_score": 0.20684108878214186,
+            "false_escalation_rate": 0.2222222222222222,
+            "recall": 0.86,
+            "roc_auc": 0.6543181818181818
+          }
+        }
+      }
+    },
+    "parameters": {
+      "C": 1.0,
+      "max_iter": 1000,
+      "random_state": 42,
+      "solver": "liblinear"
+    },
+    "type": "sklearn_logistic_regression"
+  },
+  "not_evaluated": [
+    "next_event_prediction",
+    "resolution_time_error"
+  ],
+  "row_count": 1000,
+  "split_counts": {
+    "test": 149,
+    "train": 707,
+    "validation": 144
+  },
+  "target": "requires_intervention",
+  "versions": {
+    "dataset": "sha256:62fe1959cfb80afa02a7addd5a371c5511738758cfd1500b8e41e65cafed31de",
+    "experiment": "phase10-v2-logistic-v1",
+    "feature_definition": "v1",
+    "scenario_assignment": "source-risk-friction-timing-v3",
+    "split": "sha256-transaction-id-mod-100-v1",
+    "target_definition": "pending-window-v2"
+  }
+}
