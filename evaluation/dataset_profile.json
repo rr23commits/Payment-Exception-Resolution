@@ -1,0 +1,93 @@
+{
+  "amount_inr": {
+    "max": "9993.06",
+    "mean": "4999.02293",
+    "min": "28.52"
+  },
+  "columns": [
+    "Transaction ID",
+    "Timestamp",
+    "Sender Name",
+    "Sender UPI ID",
+    "Receiver Name",
+    "Receiver UPI ID",
+    "Amount (INR)",
+    "Status"
+  ],
+  "duplicate_rows": 0,
+  "field_quality": {
+    "Receiver Name": {
+      "distinct_count": 996,
+      "non_empty": 1000,
+      "valid_upi_format": null
+    },
+    "Receiver UPI ID": {
+      "distinct_count": 1000,
+      "non_empty": 1000,
+      "valid_upi_format": 1000
+    },
+    "Sender Name": {
+      "distinct_count": 997,
+      "non_empty": 1000,
+      "valid_upi_format": null
+    },
+    "Sender UPI ID": {
+      "distinct_count": 1000,
+      "non_empty": 1000,
+      "valid_upi_format": 1000
+    }
+  },
+  "inferred_types": {
+    "Amount (INR)": "decimal",
+    "Receiver Name": "string",
+    "Receiver UPI ID": "string",
+    "Sender Name": "string",
+    "Sender UPI ID": "string",
+    "Status": "string",
+    "Timestamp": "datetime (%Y-%m-%d %H:%M:%S)",
+    "Transaction ID": "string"
+  },
+  "lifecycle_event_fields_present": false,
+  "missing_values": {
+    "Amount (INR)": 0,
+    "Receiver Name": 0,
+    "Receiver UPI ID": 0,
+    "Sender Name": 0,
+    "Sender UPI ID": 0,
+    "Status": 0,
+    "Timestamp": 0,
+    "Transaction ID": 0
+  },
+  "source": {
+    "bytes": 137073,
+    "filename": "transactions.csv",
+    "row_count": 1000,
+    "sha256": "62fe1959cfb80afa02a7addd5a371c5511738758cfd1500b8e41e65cafed31de",
+    "version": "sha256:62fe1959cfb80afa02a7addd5a371c5511738758cfd1500b8e41e65cafed31de"
+  },
+  "source_transaction_mapping": {
+    "amount_inr": "Amount (INR)",
+    "receiver_name": "Receiver Name",
+    "receiver_upi_id": "Receiver UPI ID",
+    "sender_name": "Sender Name",
+    "sender_upi_id": "Sender UPI ID",
+    "status": "Status",
+    "timestamp": "Timestamp",
+    "transaction_id": "Transaction ID"
+  },
+  "status_distribution": {
+    "FAILED": 498,
+    "SUCCESS": 502
+  },
+  "timestamp": {
+    "format": "%Y-%m-%d %H:%M:%S",
+    "max": "2024-07-03 23:15:06",
+    "min": "2024-06-04 00:15:27"
+  },
+  "transaction_id": {
+    "distinct_count": 1000,
+    "duplicate_count": 0,
+    "unique": true
+  },
+  "undocumented_columns": []
+}

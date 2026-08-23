@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+
+# Local environments, test/build outputs, and editor metadata.
+*.egg-info/
+build/
+dist/
+.coverage
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+
+# Local database files and logs.
+*.db
+*.sqlite*
+*.log
+
+# Reproducible generated ground truth and downloaded source data are not public by default.
+data/generated/*.json
+data/raw/*.csv
+data/raw/*.zip
