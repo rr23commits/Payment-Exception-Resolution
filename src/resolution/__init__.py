@@ -13,7 +13,10 @@ from src.engine.reconstruction import StateSnapshot, reconstruct_state
 from src.features import FeatureRow
 from src.generation import ScenarioInstance
 from src.policy import PolicyAction, PolicyDecision, PredictionSignal
-from src.provenance import DERIVED_STATE, HUMAN_DECISION, MODEL_OUTPUT, RESOLUTION_RESULT
+from src.provenance import DERIVED_STATE, HUMAN_DECISION, MODEL_OUTPUT, RESOLUTION_RESULT, SIMULATED_RECOVERY
+
+
+_UNSET = object()
 
 
 class HumanDecision(str, Enum):
@@ -61,13 +64,26 @@ class ResolutionCase:
     human_decision: ModeledHumanDecision | None = None
     verification: ResolutionVerification | None = None
 
-    def record_human_decision(self, decision: ModeledHumanDecision) -> ResolutionCase:
+    def record_human_decision(self, decision: ModeledHumanDecision, approval_policy: PolicyDecision | None = None) -> ResolutionCase:
         """Model an approval/rejection record only; no payment operation is available here."""
-        if self.policy_decision.action != PolicyAction.REQUIRE_HUMAN_APPROVAL:
+        policy = approval_policy or self.policy_decision
+        if policy.action != PolicyAction.REQUIRE_HUMAN_APPROVAL:
             raise ValueError("human decision is only required by the current policy action")
         if self.human_decision is not None:
             raise ValueError("human decision is already recorded")
         return _replace_case(self, self.audit_trail.append("HUMAN_DECISION", decision, decision.provenance), decision)
+
+    def record_recovery_opportunity(self, opportunity: object) -> ResolutionCase:
+        """Append a separate simulated-recovery record without changing historical verification."""
+        if any(record.record_type == "RECOVERY_OPPORTUNITY" for record in self.audit_trail.records):
+            raise ValueError("recovery opportunity is already recorded")
+        return _replace_case(self, self.audit_trail.append("RECOVERY_OPPORTUNITY", opportunity, SIMULATED_RECOVERY))
+
+    def record_simulated_recovery(self, outcome: object) -> ResolutionCase:
+        """Append one controlled retry result; this is never lifecycle evidence."""
+        if any(record.record_type == "SIMULATED_RECOVERY_OUTCOME" for record in self.audit_trail.records):
+            raise ValueError("simulated recovery is already recorded")
+        return _replace_case(self, self.audit_trail.append("SIMULATED_RECOVERY_OUTCOME", outcome, SIMULATED_RECOVERY))
 
     def reveal_and_verify(self, instance: ScenarioInstance) -> ResolutionCase:
         """Reveal only post-cutoff evidence, then verify the complete controlled outcome."""
@@ -131,7 +147,7 @@ def _replace_case(
     case: ResolutionCase,
     trail: AuditTrail,
     human_decision: ModeledHumanDecision | None = None,
-    verification: ResolutionVerification | None = None,
+    verification: ResolutionVerification | None | object = _UNSET,
 ) -> ResolutionCase:
     return ResolutionCase(
         case.transaction_id,
@@ -140,5 +156,5 @@ def _replace_case(
         case.policy_decision,
         trail,
         case.human_decision if human_decision is None else human_decision,
-        verification,
+        case.verification if verification is _UNSET else verification,
     )

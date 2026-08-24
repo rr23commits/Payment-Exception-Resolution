@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import timedelta
 from enum import Enum
+from uuid import NAMESPACE_URL, uuid5
 
 from src.domain.state_machine import EvidenceType, PaymentState
 from src.engine.reconstruction import StateSnapshot
@@ -27,6 +28,11 @@ class ExceptionIncident:
     evidence_ids: tuple[str, ...]
     reasoning: str
     provenance: str = DERIVED_STATE
+
+    @property
+    def incident_id(self) -> str:
+        """Stable identifier for linking downstream records without changing incident truth."""
+        return str(uuid5(NAMESPACE_URL, f"exception:{self.transaction_id}:{self.kind.value}:{','.join(self.evidence_ids)}"))
 
 
 def detect_exceptions(

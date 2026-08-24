@@ -28,6 +28,11 @@ class PolicyTests(unittest.TestCase):
             self.assertEqual(decision.action, PolicyAction.REQUIRE_HUMAN_APPROVAL)
             self.assertEqual(decision.requested_operation, operation)
 
+    def test_retry_requires_human_approval(self) -> None:
+        decision = recommend(snapshot(PaymentState.GATEWAY_TIMEOUT), requested_operation=MoneyMovingOperation.RETRY)
+
+        self.assertEqual(decision.action, PolicyAction.REQUIRE_HUMAN_APPROVAL)
+
     def test_state_truth_is_not_overridden_by_prediction(self) -> None:
         decision = recommend(snapshot(PaymentState.SETTLED), prediction=PredictionSignal(True, 0.99))
 

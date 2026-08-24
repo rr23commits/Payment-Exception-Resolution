@@ -27,6 +27,7 @@ class MoneyMovingOperation(str, Enum):
     TRANSFER = "TRANSFER"
     RELEASE = "RELEASE"
     CANCEL = "CANCEL"
+    RETRY = "RETRY"
 
 
 @dataclass(frozen=True)

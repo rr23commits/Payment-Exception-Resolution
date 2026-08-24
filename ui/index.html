@@ -3,33 +3,63 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Payment Exception Resolution Demo</title>
+    <title>PAY_OPS_CONSOLE</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main>
-      <header>
-        <p class="eyebrow">LOCAL ENGINE DEMO</p>
-        <h1>Payment exception resolution</h1>
-        <p class="simulation">Simulated controlled data only. This demo cannot move money or make payment changes.</p>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#queue" data-view-link="queue">PAY_OPS_CONSOLE</a>
+        <nav aria-label="Application views">
+          <button class="nav-link is-active" type="button" data-view="queue">Work queue</button>
+          <button class="nav-link" type="button" data-view="investigation">Investigation</button>
+          <button class="nav-link" type="button" data-view="customer">Customer status</button>
+        </nav>
+        <p class="environment">CONTROLLED SIMULATION</p>
       </header>
 
-      <section class="selector" aria-label="Incident selection">
-        <label for="incident-select">Incident</label>
-        <select id="incident-select"><option>Loading incidents…</option></select>
+      <p id="error" role="alert"></p>
+
+      <section id="queue-view" class="view">
+        <div class="view-heading">
+          <div><p class="eyebrow">OPERATOR / EXCEPTION MANAGEMENT</p><h1>Professional work queue</h1></div>
+          <p id="queue-summary" class="queue-summary"></p>
+        </div>
+        <div class="queue-controls">
+          <input id="queue-search" type="search" placeholder="Search incident ID, route, state, or reason" aria-label="Search work queue">
+          <select id="queue-filter" aria-label="Filter work queue"><option value="all">All exceptions</option><option value="recovery">Recovery eligible</option><option value="attention">Requires attention</option></select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Incident ID</th><th>Time</th><th>Amount</th><th>Route</th><th>Exception reason</th><th>Lifecycle state</th><th>Recovery status</th><th>Action</th></tr></thead>
+            <tbody id="queue-body"><tr><td colspan="8">Loading controlled incidents…</td></tr></tbody>
+          </table>
+        </div>
       </section>
 
-      <p id="error" role="alert"></p>
-      <section id="summary" class="cards" aria-live="polite"></section>
-      <section class="panel">
-        <h2>Evidence timeline</h2>
-        <ol id="timeline"></ol>
+      <section id="investigation-view" class="view" hidden>
+        <div class="view-heading investigation-heading">
+          <div><p class="eyebrow">OPERATOR / INCIDENT INVESTIGATION</p><h1 id="incident-title">Select an incident</h1></div>
+          <button class="secondary-button" type="button" data-view="queue">Back to queue</button>
+        </div>
+        <div class="investigation-grid">
+          <section class="workspace-panel event-panel"><h2>What happened</h2><ol id="timeline" class="event-track"></ol></section>
+          <aside class="workspace-panel diagnosis-panel"><section id="recovery" class="recovery" hidden aria-live="polite"></section><h2>Assessment</h2><div id="diagnosis" class="diagnosis"></div></aside>
+        </div>
+        <details class="raw-details"><summary>View Raw Payload (JSON) ▾</summary><pre id="raw-payload" class="payload"></pre></details>
       </section>
-      <section class="panel">
-        <h2>Audit history</h2>
-        <ol id="audit"></ol>
+
+      <section id="customer-view" class="view customer-view" hidden>
+        <article class="customer-card">
+          <p class="eyebrow">PAYMENT STATUS UPDATE</p><h1 id="customer-amount">Your payment is being resolved</h1>
+          <p id="customer-state" class="customer-state"></p>
+          <ol id="customer-timeline" class="customer-timeline"></ol>
+          <section class="customer-message"><h2>Your money is safe.</h2><p id="customer-explanation"></p><p id="customer-action"></p><p id="customer-outcome"></p></section>
+          <button id="return-merchant" class="customer-button" type="button">Return to merchant</button>
+          <p id="customer-return-note" class="return-note" hidden>This local controlled demo is not connected to a merchant site.</p>
+        </article>
       </section>
-      <footer>All lifecycle, complaint, model, policy, and resolution information is generated for this controlled evaluation.</footer>
+      <footer>Simulated controlled data only. This demo cannot move money. No payment rail, bank, UPI, or merchant integration is connected.</footer>
     </main>
     <script src="/app.js"></script>
   </body>
