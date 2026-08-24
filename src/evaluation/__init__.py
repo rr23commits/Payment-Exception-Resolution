@@ -21,7 +21,7 @@ from src.generation import ASSIGNMENT_VERSION, ScenarioInstance, generate_scenar
 from src.ingestion.inspect import inspect_csv
 from src.ingestion.source_transactions import read_source_transactions
 from src.ml import DatasetSplit
-from src.ml.experiment import ABLATIONS, EXPERIMENT_VERSION, build_rows, fit_model, model_probabilities, run_experiment
+from src.ml.experiment import ABLATIONS, EXPERIMENT_VERSION, build_rows, fit_model, model_probability, model_probabilities, run_experiment
 from src.policy import PolicyAction, PolicyDecision, PredictionSignal, recommend
 from src.resolution import HumanDecision, ModeledHumanDecision, VersionedPrediction, open_resolution_case
 from src.resolution import ResolutionCase
@@ -43,6 +43,8 @@ class EngineRecord:
     features: FeatureRow
     baseline_prediction: BaselinePrediction
     model_prediction: PredictionSignal
+    recovery_features: FeatureRow
+    recovery_prediction: PredictionSignal
     policy_decision: PolicyDecision
     resolution_case: ResolutionCase
 
@@ -117,8 +119,13 @@ def build_engine_records(records: list[SourceTransaction]) -> tuple[EngineRecord
         features = build_feature_row(source, instance, cutoff)
         target = derive_target(instance, cutoff)
         baseline_prediction = baseline.predict(features)
-        model_probability = probabilities[source.transaction_id]
-        model_signal = PredictionSignal(model_probability >= 0.5, model_probability)
+        model_score = probabilities[source.transaction_id]
+        model_signal = PredictionSignal(model_score >= 0.5, model_score)
+        # Recovery reconstructs the earlier timeout cutoff, so it must be scored from
+        # that same snapshot rather than reuse the pending-state prediction below.
+        recovery_features = build_feature_row(source, instance, instance.observation_cutoff)
+        recovery_probability = model_probability(model, recovery_features, feature_names)
+        recovery_signal = PredictionSignal(recovery_probability >= 0.5, recovery_probability)
         policy = recommend(snapshot, incidents, model_signal)
         case = open_resolution_case(
             instance,
@@ -136,7 +143,21 @@ def build_engine_records(records: list[SourceTransaction]) -> tuple[EngineRecord
         verified = case.reveal_and_verify(instance)
         if verified.verification is None or verified.verification.requires_intervention != target.requires_intervention:
             raise ValueError("resolution verification disagrees with the controlled target")
-        output.append(EngineRecord(source, instance, snapshot, incidents, features, baseline_prediction, model_signal, policy, verified))
+        output.append(
+            EngineRecord(
+                source,
+                instance,
+                snapshot,
+                incidents,
+                features,
+                baseline_prediction,
+                model_signal,
+                recovery_features,
+                recovery_signal,
+                policy,
+                verified,
+            )
+        )
     return tuple(output)
 
 

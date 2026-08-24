@@ -3,9 +3,11 @@ from pathlib import Path
 import unittest
 
 from src.evaluation import build_engine_records
+from src.features import build_feature_row
 from src.ingestion.inspect import inspect_csv
 from src.ingestion.source_transactions import read_source_transactions
-from src.recovery import RecoveryStatus, apply_decision, create_opportunity, metrics, retry_policy, simulate_retry
+from src.ml.experiment import ABLATIONS, build_rows, fit_model, model_probability
+from src.recovery import RecoveryStatus, apply_decision, create_opportunity, metrics, read_model, retry_policy, simulate_retry
 
 
 SOURCE = Path("data/raw/transactions.csv")
@@ -40,3 +42,21 @@ class RecoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "approved"):
             simulate_retry(succeeded)
         self.assertEqual(metrics(type(opportunity)(opportunity.opportunity_id, opportunity.transaction_id, opportunity.incident_ids, Decimal("0"), opportunity.recommended_action, opportunity.status)).simulated_recovery_rate, Decimal("0"))
+
+    def test_recovery_prediction_uses_the_timeout_snapshot_cutoff(self) -> None:
+        record = next(record for record in self.records if create_opportunity(record) is not None)
+        opportunity = create_opportunity(record)
+        policy = retry_policy(record)
+
+        self.assertEqual(
+            record.recovery_features,
+            build_feature_row(record.source, record.instance, record.instance.observation_cutoff),
+        )
+        feature_names = ABLATIONS["plus_complaint_signals"]
+        expected_probability = model_probability(
+            fit_model(build_rows([item.source for item in self.records]), feature_names),
+            record.recovery_features,
+            feature_names,
+        )
+        self.assertEqual(record.recovery_prediction.probability, expected_probability)
+        self.assertEqual(read_model(record, opportunity, policy).model_probability, record.recovery_prediction.probability)

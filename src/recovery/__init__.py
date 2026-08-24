@@ -73,7 +73,7 @@ def create_opportunity(record: EngineRecord) -> RecoveryOpportunity | None:
 
 def retry_policy(record: EngineRecord) -> PolicyDecision:
     snapshot, incidents = _timeout_evidence(record)
-    return recommend(snapshot, incidents, record.model_prediction, MoneyMovingOperation.RETRY)
+    return recommend(snapshot, incidents, record.recovery_prediction, MoneyMovingOperation.RETRY)
 
 
 def apply_decision(opportunity: RecoveryOpportunity, approve: bool) -> RecoveryOpportunity:
@@ -99,7 +99,7 @@ def metrics(opportunity: RecoveryOpportunity) -> RecoveryMetrics:
 def read_model(record: EngineRecord, opportunity: RecoveryOpportunity, policy: PolicyDecision) -> RecoveryReadModel:
     snapshot, incidents = _timeout_evidence(record)
     reasons = tuple(incident.reasoning for incident in incidents if incident.kind == ExceptionKind.TIMEOUT_TO_REVERSAL)
-    return RecoveryReadModel(opportunity, snapshot.state, reasons, record.model_prediction.probability, policy, policy.reasoning, metrics(opportunity))
+    return RecoveryReadModel(opportunity, snapshot.state, reasons, record.recovery_prediction.probability, policy, policy.reasoning, metrics(opportunity))
 
 
 def _timeout_evidence(record: EngineRecord):

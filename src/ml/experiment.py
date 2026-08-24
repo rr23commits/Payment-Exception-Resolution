@@ -125,6 +125,11 @@ def model_probabilities(model: Pipeline, rows: list[ExperimentRow], feature_name
     return model.predict_proba(_feature_dicts(rows, feature_names))[:, 1].tolist()
 
 
+def model_probability(model: Pipeline, features: FeatureRow, feature_names: tuple[str, ...]) -> float:
+    """Score one independently reconstructed snapshot with the existing model contract."""
+    return float(model.predict_proba([{name: features.model_inputs[name] for name in feature_names}])[:, 1][0])
+
+
 def _new_model() -> Pipeline:
     return Pipeline(
         [

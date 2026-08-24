@@ -32,6 +32,8 @@ class UiTests(unittest.TestCase):
         for text in ("Professional work queue", "What happened", "Customer status", "Recovery status"):
             self.assertIn(text, html)
         self.assertIn("queue-search", script)
+        self.assertIn("hashchange", script)
+        self.assertIn("data-view-link", script)
         self.assertIn("View Raw Payload (JSON)", html)
         self.assertNotIn("Audit history", html)
         self.assertNotIn("😀", html + script)

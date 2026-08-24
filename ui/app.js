@@ -64,10 +64,15 @@ function renderQueue() {
     <td class="technical" title="${escapeHtml(incident.transaction_id)}">${escapeHtml(shortId(incident.transaction_id))}</td><td class="muted">${escapeHtml(stamp(incident.timestamp))}</td><td>${escapeHtml(money(incident.amount))}</td><td class="technical">${escapeHtml(incident.route)}</td><td>${escapeHtml(exceptionReason(incident))}</td><td>${stateBadge(incident.state)}</td><td>${recoveryBadge(incident)}</td><td><span class="action-link">Investigate</span></td></tr>`).join("") : '<tr><td colspan="8" class="muted">No controlled incidents match this view.</td></tr>';
 }
 
-function showView(name) {
-  document.querySelectorAll(".view").forEach((view) => { view.hidden = view.id !== `${name}-view`; });
-  document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("is-active", button.dataset.view === name));
-  window.location.hash = name;
+function showView(name, updateHash = true) {
+  const viewName = ["queue", "investigation", "customer"].includes(name) ? name : "queue";
+  document.querySelectorAll(".view").forEach((view) => { view.hidden = view.id !== `${viewName}-view`; });
+  document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("is-active", button.dataset.view === viewName));
+  if (updateHash && window.location.hash !== `#${viewName}`) window.location.hash = viewName;
+}
+
+function syncViewFromHash() {
+  showView(window.location.hash.slice(1), false);
 }
 
 function eventName(record) {
@@ -130,8 +135,7 @@ async function start() {
     renderQueue();
     const preferred = incidents.find((item) => item.recovery_available) || incidents[0];
     if (preferred) await loadIncident(preferred.transaction_id);
-    const initial = window.location.hash.slice(1);
-    if (["queue", "investigation", "customer"].includes(initial)) showView(initial); else showView("queue");
+    syncViewFromHash();
   } catch (loadError) { error.textContent = loadError.message; }
 }
 
@@ -139,5 +143,7 @@ queueSearch.addEventListener("input", renderQueue);
 queueFilter.addEventListener("change", renderQueue);
 queueBody.addEventListener("click", (event) => { const row = event.target.closest("tr[data-transaction-id]"); if (row) { loadIncident(row.dataset.transactionId); showView("investigation"); } });
 document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
+document.querySelector("[data-view-link]").addEventListener("click", (event) => { event.preventDefault(); showView("queue"); });
+window.addEventListener("hashchange", syncViewFromHash);
 document.querySelector("#return-merchant").addEventListener("click", () => { document.querySelector("#customer-return-note").hidden = false; });
 start();
